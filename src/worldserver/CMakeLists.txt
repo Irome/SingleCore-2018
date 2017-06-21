@@ -64,6 +64,26 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/modules/worldengine/nucleus/src/Packets
   ${CMAKE_SOURCE_DIR}/modules/worldengine/nucleus/src/Threading
   ${CMAKE_SOURCE_DIR}/modules/worldengine/nucleus/src/Utilities
+  
+  ${CMAKE_SOURCE_DIR}/modules/Bots
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/actions
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/DK
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/druid
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/generic
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/hunter
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/mage
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/paladin
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/priest
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/rogue
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/shaman
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/triggers
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/values
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/values/formations
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/warlock
+  ${CMAKE_SOURCE_DIR}/modules/Bots/playerbot/strategy/warrior
+  
   ${CMAKE_SOURCE_DIR}/modules/acore/game-framework/src/Addons
   ${game_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/game
@@ -74,7 +94,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/game/AI/ScriptedAI
   ${CMAKE_SOURCE_DIR}/src/game/AI/SmartScripts
   ${CMAKE_SOURCE_DIR}/src/game/AuctionHouse
-  ${CMAKE_SOURCE_DIR}/src/game/AuctionHouse/AuctionHouseBot
   ${CMAKE_SOURCE_DIR}/src/game/Battlefield
   ${CMAKE_SOURCE_DIR}/src/game/Battlefield/Zones
   ${CMAKE_SOURCE_DIR}/src/game/Battlegrounds
@@ -169,6 +188,7 @@ set_target_properties(worldserver PROPERTIES LINK_FLAGS "${worldserver_LINK_FLAG
 
 target_link_libraries(worldserver
   game
+  Bots
   shared
   scripts
   collision

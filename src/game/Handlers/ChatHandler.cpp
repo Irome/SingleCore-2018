@@ -29,6 +29,10 @@
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
 
+// playerbot mod
+#include "../../modules/Bots/playerbot/playerbot.h"
+#include "../../modules/Bots/playerbot/RandomPlayerbotMgr.h"
+
 void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
 {
     uint32 type;
@@ -331,48 +335,59 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 sender->Yell(msg, lang);
         } break;
         case CHAT_MSG_WHISPER:
-        {
-            if (sender->getLevel() < sWorld->getIntConfig(CONFIG_CHAT_WHISPER_LEVEL_REQ))
-            {
-                SendNotification(GetTrinityString(LANG_WHISPER_REQ), sWorld->getIntConfig(CONFIG_CHAT_WHISPER_LEVEL_REQ));
-                return;
-            }
+		{
+			if (sender->getLevel() < sWorld->getIntConfig(CONFIG_CHAT_WHISPER_LEVEL_REQ))
+			{
+				SendNotification(GetTrinityString(LANG_WHISPER_REQ), sWorld->getIntConfig(CONFIG_CHAT_WHISPER_LEVEL_REQ));
+				return;
+			}
 
-            if (!normalizePlayerName(to))
-            {
-                SendPlayerNotFoundNotice(to);
-                break;
-            }
+			if (!normalizePlayerName(to))
+			{
+				SendPlayerNotFoundNotice(to);
+				break;
+			}
 
-            Player* receiver = ObjectAccessor::FindPlayerByName(to, false);
-            bool senderIsPlayer = AccountMgr::IsPlayerAccount(GetSecurity());
-            bool receiverIsPlayer = AccountMgr::IsPlayerAccount(receiver ? receiver->GetSession()->GetSecurity() : SEC_PLAYER);
-            if (!receiver || (senderIsPlayer && !receiverIsPlayer && !receiver->isAcceptWhispers() && !receiver->IsInWhisperWhiteList(sender->GetGUID())))
-            {
-                SendPlayerNotFoundNotice(to);
-                return;
-            }
+			Player* receiver = ObjectAccessor::FindPlayerByName(to, false);
+			bool senderIsPlayer = AccountMgr::IsPlayerAccount(GetSecurity());
+			bool receiverIsPlayer = AccountMgr::IsPlayerAccount(receiver ? receiver->GetSession()->GetSecurity() : SEC_PLAYER);
+			if (!receiver || (senderIsPlayer && !receiverIsPlayer && !receiver->isAcceptWhispers() && !receiver->IsInWhisperWhiteList(sender->GetGUID())))
+			{
+				SendPlayerNotFoundNotice(to);
+				return;
+			}
 
-            if (!sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHAT) && senderIsPlayer && receiverIsPlayer)
-                if (GetPlayer()->GetTeamId() != receiver->GetTeamId())
-                {
-                    SendWrongFactionNotice();
-                    return;
-                }
+			if (!sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHAT) && senderIsPlayer && receiverIsPlayer)
+				if (GetPlayer()->GetTeamId() != receiver->GetTeamId())
+				{
+					SendWrongFactionNotice();
+					return;
+				}
 
-            // pussywizard: optimization
-            /*if (GetPlayer()->HasAura(1852) && !receiver->IsGameMaster())
-            {
-                SendNotification(GetTrinityString(LANG_GM_SILENCE), GetPlayer()->GetName().c_str());
-                return;
-            }*/
+			// pussywizard: optimization
+			/*if (GetPlayer()->HasAura(1852) && !receiver->IsGameMaster())
+			{
+				SendNotification(GetTrinityString(LANG_GM_SILENCE), GetPlayer()->GetName().c_str());
+				return;
+			}*/
 
-            // If player is a Gamemaster and doesn't accept whisper, we auto-whitelist every player that the Gamemaster is talking to
-            if (!senderIsPlayer && !sender->isAcceptWhispers() && !sender->IsInWhisperWhiteList(receiver->GetGUID()))
-                sender->AddWhisperWhiteList(receiver->GetGUID());
+			// If player is a Gamemaster and doesn't accept whisper, we auto-whitelist every player that the Gamemaster is talking to
+			if (!senderIsPlayer && !sender->isAcceptWhispers() && !sender->IsInWhisperWhiteList(receiver->GetGUID()))
+				sender->AddWhisperWhiteList(receiver->GetGUID());
 
-            GetPlayer()->Whisper(msg, lang, receiver->GetGUID());
-        } break;
+// playerbot mod
+			if (GetPlayer()->GetPlayerbotAI())
+			{
+				GetPlayer()->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer());
+				GetPlayer()->m_speakTime = 0;
+				GetPlayer()->m_speakCount = 0;
+			}
+			else
+			{
+				GetPlayer()->Whisper(msg, lang, receiver->GetGUID());
+			}
+		}
+        break;
         case CHAT_MSG_PARTY:
         case CHAT_MSG_PARTY_LEADER:
         {
@@ -390,6 +405,18 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 
+// playerbot mod
+			for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+			{
+				Player* player = itr->GetSource();
+				if (player && player->GetPlayerbotAI())
+				{
+					player->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer());
+					GetPlayer()->m_speakTime = 0;
+					GetPlayer()->m_speakCount = 0;
+				}
+			}
+
             WorldPacket data;
             ChatHandler::BuildChatPacket(data, ChatMsg(type), Language(lang), sender, NULL, msg);
             group->BroadcastPacket(&data, false, group->GetMemberGroup(GetPlayer()->GetGUID()));
@@ -405,6 +432,17 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                     guild->BroadcastToGuild(this, false, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
                 }
             }
+// playerbot mod
+			PlayerbotMgr *mgr = GetPlayer()->GetPlayerbotMgr();
+			if (mgr)
+			{
+				for (PlayerBotMap::const_iterator it = mgr->GetPlayerBotsBegin(); it != mgr->GetPlayerBotsEnd(); ++it)
+				{
+					Player* const bot = it->second;
+					if (bot->GetGuildId() == GetPlayer()->GetGuildId())
+						bot->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer());
+				}
+			}
         } break;
         case CHAT_MSG_OFFICER:
         {
@@ -431,6 +469,18 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 
+// playerbot mod
+			for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+			{
+				Player* player = itr->GetSource();
+				if (player && player->GetPlayerbotAI())
+				{
+					player->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer());
+					GetPlayer()->m_speakTime = 0;
+					GetPlayer()->m_speakCount = 0;
+				}
+			}
+
             WorldPacket data;
             ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID, Language(lang), sender, NULL, msg);
             group->BroadcastPacket(&data, false);
@@ -448,6 +498,18 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 
+// playerbot mod
+			for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+			{
+				Player* player = itr->GetSource();
+				if (player && player->GetPlayerbotAI())
+				{
+					player->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer());
+					GetPlayer()->m_speakTime = 0;
+					GetPlayer()->m_speakCount = 0;
+				}
+			}
+
             WorldPacket data;
             ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID_LEADER, Language(lang), sender, NULL, msg);
             group->BroadcastPacket(&data, false);
@@ -459,6 +521,18 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 return;
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
+
+// playerbot mod
+			for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+			{
+				Player* player = itr->GetSource();
+				if (player && player->GetPlayerbotAI())
+				{
+					player->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer());
+					GetPlayer()->m_speakTime = 0;
+					GetPlayer()->m_speakCount = 0;
+				}
+			}
 
             WorldPacket data;
             //in battleground, raid warning is sent only to players in battleground - code is ok
@@ -507,6 +581,13 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 if (Channel* chn = cMgr->GetChannel(channel, sender))
                 {
                     sScriptMgr->OnPlayerChat(sender, type, lang, msg, chn);
+
+// playerbot mod
+					if (_player->GetPlayerbotMgr() && chn->GetFlags() & 0x18)
+					{
+						_player->GetPlayerbotMgr()->HandleCommand(type, msg);
+					}
+					sRandomPlayerbotMgr.HandleCommand(type, msg, *_player);
 
                     chn->Say(sender->GetGUID(), msg.c_str(), lang);
                 }

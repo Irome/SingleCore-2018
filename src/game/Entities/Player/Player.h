@@ -43,6 +43,10 @@ class PlayerSocial;
 class SpellCastTargets;
 class UpdateMask;
 
+// playerbot mod
+class PlayerbotAI;
+class PlayerbotMgr;
+
 typedef std::deque<Mail*> PlayerMails;
 
 #define PLAYER_MAX_SKILLS           127
@@ -1119,6 +1123,9 @@ class Player : public Unit, public GridObject<Player>
 
         bool Create(uint32 guidlow, CharacterCreateInfo* createInfo);
 
+		// playerbot mod
+		bool CreateBot(uint32 guidlow, BotCharacterCreateInfo* createInfo);
+
         void Update(uint32 time);
 
         static bool BuildEnumData(PreparedQueryResult result, WorldPacket* data);
@@ -1518,6 +1525,9 @@ class Player : public Unit, public GridObject<Player>
         /*********************************************************/
 
         bool LoadFromDB(uint32 guid, SQLQueryHolder *holder);
+// playerbot mod
+		bool MinimalLoadFromDB(QueryResult *result, uint32 guid);
+
         bool isBeingLoaded() const;
 
         void Initialize(uint32 guid);
@@ -2437,6 +2447,15 @@ class Player : public Unit, public GridObject<Player>
         Player* GetNextRandomRaidMember(float radius);
         PartyResult CanUninviteFromGroup() const;
 
+// playerbot mod
+		//EquipmentSets& GetEquipmentSets() { return m_EquipmentSets; }
+		void SetPlayerbotAI(PlayerbotAI* ai) { assert(!m_playerbotAI && !m_playerbotMgr); m_playerbotAI = ai; }
+		PlayerbotAI* GetPlayerbotAI() { return m_playerbotAI; }
+		void SetPlayerbotMgr(PlayerbotMgr* mgr) { assert(!m_playerbotAI && !m_playerbotMgr); m_playerbotMgr = mgr; }
+		PlayerbotMgr* GetPlayerbotMgr() { return m_playerbotMgr; }
+		void SetBotDeathTimer() { m_deathTimer = 0; }
+		//PlayerTalentMap& GetTalentMap(uint8 spec) { return m_talents[spec]; }
+
         // Battleground Group System
         void SetBattlegroundOrBattlefieldRaid(Group *group, int8 subgroup = -1);
         void RemoveFromBattlegroundOrBattlefieldRaid();
@@ -2938,6 +2957,10 @@ class Player : public Unit, public GridObject<Player>
         // duel health and mana reset attributes
         uint32 healthBeforeDuel;
         uint32 manaBeforeDuel;
+
+// playerbot mod
+		PlayerbotAI* m_playerbotAI;
+		PlayerbotMgr* m_playerbotMgr;
 };
 
 void AddItemsSetItem(Player*player, Item* item);

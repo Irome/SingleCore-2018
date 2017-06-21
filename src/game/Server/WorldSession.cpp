@@ -36,6 +36,9 @@
 #include "SavingSystem.h"
 #include "AccountMgr.h"
 
+// playerbot mod
+#include "../../modules/Bots/playerbot/playerbot.h"
+
 namespace {
 
 std::string const DefaultPlayerName = "<none>";
@@ -165,6 +168,14 @@ uint32 WorldSession::GetGuidLow() const
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket const* packet)
 {
+// playerbot mod
+	if (GetPlayer()) {
+		if (GetPlayer()->GetPlayerbotAI())
+			GetPlayer()->GetPlayerbotAI()->HandleBotOutgoingPacket(*packet);
+		else if (GetPlayer()->GetPlayerbotMgr())
+			GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(*packet);
+	}
+
     if (!m_Socket)
         return;
 
@@ -279,6 +290,10 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
                                 (this->*opHandle.handler)(*packet);
                             }
                         }
+
+// playerbot mod
+						if (_player && _player->GetPlayerbotMgr())
+							_player->GetPlayerbotMgr()->HandleMasterIncomingPacket(*packet);
                         break;
                     case STATUS_TRANSFER:
                         if (_player && !_player->IsInWorld())
@@ -324,6 +339,10 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
         if (getMSTimeDiff(_startMSTime, getMSTime()) >= 3) // limit (by time) packets processed in one update, prevent DDoS
             break;
     }
+
+// playerbot mod
+	if (GetPlayer() && GetPlayer()->GetPlayerbotMgr())
+		GetPlayer()->GetPlayerbotMgr()->UpdateSessions(0);
 
     if (movementPacket)
     {
@@ -399,6 +418,18 @@ void WorldSession::HandleTeleportTimeout(bool updateInSessions)
     }
 }
 
+// playerbot mod
+void WorldSession::HandleBotPackets()
+{
+	WorldPacket* packet;
+	while (_recvQueue.next(packet))
+	{
+		OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
+		(this->*opHandle.handler)(*packet);
+		delete packet;
+	}
+}
+
 /// %Log the player out
 void WorldSession::LogoutPlayer(bool save)
 {
@@ -413,6 +444,11 @@ void WorldSession::LogoutPlayer(bool save)
     {
         if (uint64 lguid = _player->GetLootGUID())
             DoLootRelease(lguid);
+
+// playerbot mod
+		if (_player->GetPlayerbotMgr())
+			_player->GetPlayerbotMgr()->LogoutAllBots();
+		sRandomPlayerbotMgr.OnPlayerLogout(_player);
 
         ///- If the player just died before logging out, make him appear as a ghost
         //FIXME: logout must be delayed in case lost connection with client in time of combat
@@ -1245,6 +1281,7 @@ void WorldSession::ProcessQueryCallbackLogin()
     {
         SQLQueryHolder* param;
         _charLoginCallback.get(param);
+
         HandlePlayerLoginFromDB((LoginQueryHolder*)param);
         _charLoginCallback.cancel();
     }

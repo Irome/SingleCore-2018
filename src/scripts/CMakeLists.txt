@@ -100,6 +100,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/modules/worldengine/lib-collision/src/Models
   ${CMAKE_SOURCE_DIR}/modules/worldengine/nucleus/src
   ${CMAKE_SOURCE_DIR}/modules/worldengine/nucleus/src/Database
+  
   ${CMAKE_SOURCE_DIR}/modules/acore/game-framework/src/Addons
   ${CMAKE_SOURCE_DIR}/src/game/Accounts
   ${CMAKE_SOURCE_DIR}/src/game/Achievements
@@ -178,6 +179,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders
   ${ACE_INCLUDE_DIR}
   ${MYSQL_INCLUDE_DIR}
+  ${OPENSSL_INCLUDE_DIR}
 )
 
 add_library(scripts STATIC

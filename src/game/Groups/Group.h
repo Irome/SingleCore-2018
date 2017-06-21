@@ -307,6 +307,10 @@ class Group
             _difficultyChangePreventionType = type;
         }
 
+// playerbot mod
+		uint64 GetTargetIcon(int index) { return m_targetIcons[index]; }
+		Rolls GetRolls() { return RollId; }
+
     protected:
         void _homebindIfInstance(Player* player);
         void _cancelHomebindIfInstance(Player* player);

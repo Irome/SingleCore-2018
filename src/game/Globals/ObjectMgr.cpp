@@ -393,6 +393,10 @@ void ObjectMgr::LoadCreatureTemplates()
 {
     uint32 oldMSTime = getMSTime();
 
+	// EJ init tamable beasts
+	mTamableBeastsEntryStore.clear();
+	uint32 checkIndex = 0;
+
     //                                                 0              1                 2                  3                 4            5           6        7         8
     QueryResult result = WorldDatabase.Query("SELECT entry, difficulty_entry_1, difficulty_entry_2, difficulty_entry_3, KillCredit1, KillCredit2, modelid1, modelid2, modelid3, "
     //                                           9       10      11       12           13           14        15     16      17          18       19         20         21
@@ -499,6 +503,13 @@ void ObjectMgr::LoadCreatureTemplates()
         creatureTemplate.MechanicImmuneMask = fields[75].GetUInt32();
         creatureTemplate.flags_extra        = fields[76].GetUInt32();
         creatureTemplate.ScriptID           = GetScriptId(fields[77].GetCString());
+
+		// EJ init tamable beasts
+		if (creatureTemplate.IsTameable(false))
+		{
+			mTamableBeastsEntryStore.insert(std::pair<uint32, uint32>(checkIndex, entry));
+			checkIndex++;
+		}
 
         ++count;
     }
@@ -3845,6 +3856,9 @@ void ObjectMgr::LoadQuests()
 {
     uint32 oldMSTime = getMSTime();
 
+	// EJ generate class spell quests
+	mClassSpellQuestTemplates.clear();
+
     // For reload case
     for (QuestMap::const_iterator itr=_questTemplates.begin(); itr != _questTemplates.end(); ++itr)
         delete itr->second;
@@ -4376,20 +4390,23 @@ void ObjectMgr::LoadQuests()
                     qinfo->GetQuestId(), qinfo->RewardSpell, qinfo->RewardSpell);
                 qinfo->RewardSpell = 0;                        // no spell reward will display for this quest
             }
-
             else if (!SpellMgr::ComputeIsSpellValid(spellInfo))
             {
                 sLog->outErrorDb("Quest %u has `RewardSpell` = %u but spell %u is broken, quest will not have a spell reward.",
                     qinfo->GetQuestId(), qinfo->RewardSpell, qinfo->RewardSpell);
                 qinfo->RewardSpell = 0;                        // no spell reward will display for this quest
             }
-
             else if (GetTalentSpellCost(qinfo->RewardSpell))
             {
                 sLog->outErrorDb("Quest %u has `RewardSpell` = %u but spell %u is talent, quest will not have a spell reward.",
                     qinfo->GetQuestId(), qinfo->RewardSpell, qinfo->RewardSpell);
                 qinfo->RewardSpell = 0;                        // no spell reward will display for this quest
             }
+			else
+			{
+				// EJ generate class spell quests
+				mClassSpellQuestTemplates.insert(std::pair<uint32, Quest*>(qinfo->Id, qinfo));
+			}
         }
 
         if (qinfo->RewardSpellCast > 0)
