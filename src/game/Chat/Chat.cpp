@@ -24,6 +24,10 @@
 #include "ScriptMgr.h"
 #include "ChatLink.h"
 
+// playerbot mod
+#include "../../../modules/Bots/playerbot/playerbot.h"
+#include "../../../modules/Bots/playerbot/GuildTaskMgr.h"
+
 bool ChatHandler::load_command_table = true;
 
 std::vector<ChatCommand> const& ChatHandler::getCommandTable()

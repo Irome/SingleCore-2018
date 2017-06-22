@@ -53,6 +53,10 @@
 #include "DynamicVisibility.h"
 #include "AccountMgr.h"
 
+// playerbot mod
+#include "../../modules/Bots/playerbot/playerbot.h"
+#include "../../modules/Bots/playerbot/GuildTaskMgr.h"
+
 #include <math.h>
 
 float baseMoveSpeed[MAX_MOVE_TYPE] =
@@ -16492,6 +16496,12 @@ void Unit::Kill(Unit* killer, Unit* victim, bool durabilityLoss, WeaponAttackTyp
     // Hook for OnPVPKill Event
     if (killer)
     {
+// playerbot mod
+		if (player)
+		{
+			sGuildTaskMgr.CheckKillTask(player, victim);
+		}
+
         if (Player* killerPlr = killer->ToPlayer())
         {
             if (Player* killedPlr = victim->ToPlayer())

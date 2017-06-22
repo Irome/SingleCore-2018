@@ -186,7 +186,7 @@ class npc_crystal_spike : public CreatureScript
             void Reset()
             {
                 if (GameObject* gameobject = me->SummonGameObject(GO_CRYSTAL_SPIKE, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 3500))
-                    _gameObjectGUID = gameobject->GetGUID();
+					_gameObjectGUID = gameobject->GetGUID();
 
                 _damageTimer = 1;
             }

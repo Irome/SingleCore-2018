@@ -22,12 +22,13 @@
 #include <ace/Unbounded_Queue.h>
 #include <ace/Message_Block.h>
 
+#include "../../modules/worldengine/nucleus/src/Cryptography/Authentication/AuthCrypt.h"
+
 #if !defined (ACE_LACKS_PRAGMA_ONCE)
 #pragma once
 #endif /* ACE_LACKS_PRAGMA_ONCE */
 
 #include "Common.h"
-#include "AuthCrypt.h"
 
 class ACE_Message_Block;
 class WorldPacket;

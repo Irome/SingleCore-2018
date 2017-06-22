@@ -997,6 +997,10 @@ void Item::SendUpdateSockets()
 // time.
 void Item::SendTimeUpdate(Player* owner)
 {
+// playerbot mod
+	if (!owner || !owner->IsInWorld() || owner->GetPlayerbotAI())
+		return;
+
     uint32 duration = GetUInt32Value(ITEM_FIELD_DURATION);
     if (!duration)
         return;

@@ -76,6 +76,11 @@
 #include "AsyncAuctionListing.h"
 #include "SavingSystem.h"
 
+// playerbot mod
+#include "../../modules/Bots/playerbot/playerbot.h"
+#include "../../modules/Bots/playerbot/RandomPlayerbotMgr.h"
+#include "../../modules/Bots/playerbot/PlayerbotAIConfig.h"
+
 ACE_Atomic_Op<ACE_Thread_Mutex, bool> World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
 uint32 World::m_worldLoopCounter = 0;
@@ -1851,6 +1856,9 @@ void World::SetInitialWorldSettings()
     mgr = ChannelMgr::forTeam(TEAM_HORDE);
     mgr->LoadChannels();
 
+// playerbot mod
+	sPlayerbotAIConfig.Initialize();
+
     uint32 startupDuration = GetMSTimeDiffToNow(startupBegin);
     sLog->outString();
     sLog->outError("WORLD: World initialized in %u minutes %u seconds", (startupDuration / 60000), ((startupDuration % 60000) / 1000));
@@ -2105,6 +2113,10 @@ void World::Update(uint32 diff)
 
     // update the instance reset times
     sInstanceSaveMgr->Update();
+
+// playerbot mod
+	sRandomPlayerbotMgr.UpdateAI(diff);
+	sRandomPlayerbotMgr.UpdateSessions(diff);
 
     // And last, but not least handle the issued cli commands
     ProcessCliCommands();
@@ -2543,6 +2555,9 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
         m_ShutdownTimer = time;
         ShutdownMsg(true);
     }
+
+// playerbot mod
+	sRandomPlayerbotMgr.LogoutAllBots();
 
     sScriptMgr->OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options));
 }

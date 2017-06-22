@@ -41,6 +41,13 @@ class ChatCommand
 class ChatHandler
 {
     public:
+
+// playerbot mod
+		bool HandlePlayerbotCommand(char* args);
+		bool HandleRandomPlayerbotCommand(char* args);
+		bool HandleAhBotCommand(char* args);
+		bool HandleGuildTaskCommand(char* args);
+
         WorldSession* GetSession() { return m_session; }
         explicit ChatHandler(WorldSession* session) : m_session(session), sentErrorMessage(false) {}
         virtual ~ChatHandler() { }
