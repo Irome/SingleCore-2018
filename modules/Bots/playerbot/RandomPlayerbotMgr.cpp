@@ -268,7 +268,7 @@ void RandomPlayerbotMgr::RandomTeleport(Player* bot, vector<WorldLocation> &locs
 
     if (locs.empty())
     {
-        sLog->outError("Cannot teleport bot %s - no locations available", bot->GetName());
+        sLog->outError("Cannot teleport bot %s - no locations available", bot->GetName().c_str());
         return;
     }
 
@@ -304,19 +304,19 @@ void RandomPlayerbotMgr::RandomTeleport(Player* bot, vector<WorldLocation> &locs
 
         z = 0.05f + ground;
         sLog->outDetail("Random teleporting bot %s to %s %f,%f,%f (%u/%u locations)",
-                bot->GetName(), area->area_name[0], x, y, z, attemtps, locs.size());
+                bot->GetName().c_str(), area->area_name[0], x, y, z, attemtps, locs.size());
 
         bot->GetMotionMaster()->Clear();
         bot->TeleportTo(loc.GetMapId(), x, y, z, 0);
         return;
     }
 
-    sLog->outError("Cannot teleport bot %s - no locations available", bot->GetName());
+    sLog->outError("Cannot teleport bot %s - no locations available", bot->GetName().c_str());
 }
 
 void RandomPlayerbotMgr::RandomTeleportForLevel(Player* bot)
 {
-    sLog->outDetail("Preparing location to random teleporting bot %s for level %u", bot->GetName(), bot->getLevel());
+    sLog->outBasic("Preparing location to random teleporting bot %s for level %u", bot->GetName().c_str(), bot->getLevel());
 
     if (locsPerLevelCache[bot->getLevel()].empty()) {
         QueryResult results = WorldDatabase.PQuery("select map, position_x, position_y, position_z "
@@ -472,7 +472,7 @@ uint32 RandomPlayerbotMgr::GetZoneLevel(uint16 mapId, float teleX, float teleY, 
 
 void RandomPlayerbotMgr::Refresh(Player* bot)
 {
-    sLog->outDetail("Refreshing bot %s", bot->GetName());
+    sLog->outDetail("Refreshing bot %s", bot->GetName().c_str());
     if (bot->isDead())
     {
         bot->ResurrectPlayer(1.0f);
@@ -640,7 +640,7 @@ bool RandomPlayerbotMgr::HandlePlayerbotConsoleCommand(ChatHandler* handler, cha
                 continue;
 
             sLog->outString("[%u/%u] Processing command '%s' for bot '%s'",
-                    processed++, botIds.size(), cmd.c_str(), bot->GetName());
+                    processed++, botIds.size(), cmd.c_str(), bot->GetName().c_str());
 
             if (cmd == "init")
             {

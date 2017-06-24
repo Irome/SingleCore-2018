@@ -311,14 +311,19 @@ class ByteBuffer
             return r;
         }
 
-        template <typename T> T read(size_t pos) const
-        {
-            if (pos + sizeof(T) > size())
-                throw ByteBufferPositionException(false, pos, sizeof(T), size());
-            T val = *((T const*)&_storage[pos]);
-            EndianConvert(val);
-            return val;
-        }
+		template <typename T> T read(size_t pos) const
+		{
+			if (pos + sizeof(T) > size())
+			{
+				// EJ to analyse
+				bool breakPoint = true;
+				//throw ByteBufferPositionException(false, pos, sizeof(T), size());
+				return NULL;
+			}
+			T val = *((T const*)&_storage[pos]);
+			EndianConvert(val);
+			return val;
+		}
 
         void read(uint8 *dest, size_t len)
         {

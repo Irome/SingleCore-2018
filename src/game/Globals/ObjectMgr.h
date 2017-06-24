@@ -1460,6 +1460,8 @@ private:
 private:
 	QuestMap mClassSpellQuestTemplates;
 	std::unordered_map<uint32, uint32> mTamableBeastsEntryStore;
+	std::set<uint32> mTradeSkillTrainersEntryStore;
+	std::unordered_map<uint8, std::set<uint32>> mClassSpellTrainersEntryStore;
 
 public:
 	QuestMap const& GetClassSpellQuestTemplates() const
@@ -1469,6 +1471,14 @@ public:
 	std::unordered_map<uint32, uint32> GetTamableBeastsEntryStore() const
 	{
 		return mTamableBeastsEntryStore;
+	}
+	std::set<uint32> GetTradeSkillTrainersEntryStore() const
+	{
+		return mTradeSkillTrainersEntryStore;
+	}
+	std::unordered_map<uint8, std::set<uint32>> GetClassSpellTrainersEntryStore() const
+	{
+		return mClassSpellTrainersEntryStore;
 	}
 };
 

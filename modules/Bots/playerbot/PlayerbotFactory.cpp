@@ -81,74 +81,58 @@ void PlayerbotFactory::Prepare()
 
 void PlayerbotFactory::Randomize(bool incremental)
 {
-    sLog->outDetail("Preparing to randomize...");
+    sLog->outBasic("Preparing to randomize...");
     Prepare();
 
-    sLog->outDetail("Resetting player...");
+    sLog->outBasic("Resetting player...");
     bot->resetTalents(true);
     ClearSpells();
     ClearInventory();
 
-    sLog->outDetail("Initializing quests...");
-    InitQuests();
+    sLog->outBasic("Initializing quests...");
+    //InitQuests();
     // quest rewards boost bot level, so reduce back
-    bot->SetLevel(level);
-    ClearInventory();
+    //bot->SetLevel(level);
+    //ClearInventory();
     bot->SetUInt32Value(PLAYER_XP, 0);
     CancelAuras();
 
-    sLog->outDetail("Initializing spells (step 1)...");
-    InitAvailableSpells();
+    sLog->outBasic("Initializing spells and skills...");
+	InitAllSpellsAndSkills();
 
-    sLog->outDetail("Initializing skills (step 1)...");
-    InitSkills();
-    InitTradeSkills();
-
-    sLog->outDetail("Initializing talents...");
-    InitTalents();
-
-    sLog->outDetail("Initializing spells (step 2)...");
-    InitAvailableSpells();
-    InitSpecialSpells();
-	// EJ learn quest spells
-	InitQuestSpells();
-
-    sLog->outDetail("Initializing mounts...");
+    sLog->outBasic("Initializing mounts...");
     InitMounts();
 
-    sLog->outDetail("Initializing skills (step 2)...");
-    UpdateTradeSkills();
-
-    sLog->outDetail("Initializing equipmemt...");
+    sLog->outBasic("Initializing equipmemt...");
     InitEquipment(incremental);
 
-    sLog->outDetail("Initializing bags...");
+    sLog->outBasic("Initializing bags...");
     InitBags();
 
-    sLog->outDetail("Initializing ammo...");
+    sLog->outBasic("Initializing ammo...");
     InitAmmo();
 
-    sLog->outDetail("Initializing food...");
+    sLog->outBasic("Initializing food...");
     InitFood();
 
-    sLog->outDetail("Initializing potions...");
+    sLog->outBasic("Initializing potions...");
     InitPotions();
 
-    sLog->outDetail("Initializing second equipment set...");
+    sLog->outBasic("Initializing second equipment set...");
     //InitSecondEquipmentSet();
 
-    sLog->outDetail("Initializing inventory...");
+    sLog->outBasic("Initializing inventory...");
     InitInventory();
 
-    sLog->outDetail("Initializing guilds...");
+    sLog->outBasic("Initializing guilds...");
     //InitGuild();
 
-    sLog->outDetail("Initializing pet...");
+    sLog->outBasic("Initializing pet...");
     InitPet();
 
-    sLog->outDetail("Saving to DB...");
+    sLog->outBasic("Saving to DB...");
     bot->SetMoney(urand(level * 1000, level * 5 * 1000));
-	bot->SaveToDB(false, true);
+	bot->SaveToDB(false, false);
 }
 
 // EJ rewrite random pet
@@ -723,7 +707,7 @@ void PlayerbotFactory::InitSecondEquipmentSet()
         vector<uint32>& ids = i->second;
         if (ids.empty())
         {
-            sLog->outString(  "%s: no items to make second equipment set for slot %d", bot->GetName(), i->first);
+            sLog->outString(  "%s: no items to make second equipment set for slot %d", bot->GetName().c_str(), i->first);
             continue;
         }
 
@@ -757,7 +741,7 @@ void PlayerbotFactory::InitBags()
 
     if (ids.empty())
     {
-        sLog->outError("%s: no bags found", bot->GetName());
+        sLog->outError("%s: no bags found", bot->GetName().c_str());
         return;
     }
 
@@ -851,7 +835,7 @@ void PlayerbotFactory::EnchantItem(Item* item)
 
     if (ids.empty())
     {
-        sLog->outString(  "%s: no enchantments found for item %d", bot->GetName(), item->GetTemplate()->ItemId);
+        sLog->outString(  "%s: no enchantments found for item %d", bot->GetName().c_str(), item->GetTemplate()->ItemId);
         return;
     }
 
@@ -1049,19 +1033,6 @@ void PlayerbotFactory::InitSpecialSpells()
     }
 }
 
-// EJ init quest spells
-void PlayerbotFactory::InitQuestSpells()
-{
-	std::unordered_map<uint32, Quest*> allClassSpellQuestTemplates = sObjectMgr->GetClassSpellQuestTemplates();
-	for (std::unordered_map<uint32, Quest*>::iterator i = allClassSpellQuestTemplates.begin(); i != allClassSpellQuestTemplates.end(); ++i)
-	{
-		if (i->second->GetRequiredClasses() & bot->getClassMask())
-		{
-			bot->learnQuestRewardedSpells(i->second);
-		}
-	}
-}
-
 void PlayerbotFactory::InitTalents(uint32 specNo)
 {
 	bot->InitTalentForLevel();
@@ -1091,7 +1062,7 @@ void PlayerbotFactory::InitTalents(uint32 specNo)
         vector<TalentEntry const*> &spells = i->second;
         if (spells.empty())
         {
-            sLog->outError("%s: No spells for talent row %d", bot->GetName(), i->first);
+            sLog->outError("%s: No spells for talent row %d", bot->GetName().c_str(), i->first);
             continue;
         }
 
@@ -1112,6 +1083,100 @@ void PlayerbotFactory::InitTalents(uint32 specNo)
 
         freePoints = bot->GetFreeTalentPoints();
     }
+}
+
+// EJ init spells
+void PlayerbotFactory::InitQuestSpells()
+{
+	std::unordered_map<uint32, Quest*> allClassSpellQuestTemplates = sObjectMgr->GetClassSpellQuestTemplates();
+	for (std::unordered_map<uint32, Quest*>::iterator i = allClassSpellQuestTemplates.begin(); i != allClassSpellQuestTemplates.end(); ++i)
+	{
+		if (i->second->GetRequiredClasses() & bot->getClassMask())
+		{
+			bot->learnQuestRewardedSpells(i->second);
+		}
+	}
+}
+void PlayerbotFactory::InitLearnableSpells()
+{
+	std::set<uint32> tradeSkillsTrainerEntries = sObjectMgr->GetTradeSkillTrainersEntryStore();
+	for (std::set<uint32>::iterator entryIT = tradeSkillsTrainerEntries.begin(); entryIT != tradeSkillsTrainerEntries.end(); entryIT++)
+	{
+		TrainerSpellData const* trainer_spells = sObjectMgr->GetNpcTrainerSpells(*entryIT);
+
+		if (!trainer_spells)
+			continue;
+
+		for (TrainerSpellMap::const_iterator itr = trainer_spells->spellList.begin(); itr != trainer_spells->spellList.end(); ++itr)
+		{
+			TrainerSpell const* tSpell = &itr->second;
+
+			if (!tSpell)
+				continue;
+
+			TrainerSpellState state = bot->GetTrainerSpellState(tSpell);
+			if (state != TRAINER_SPELL_GREEN)
+				continue;
+
+			if (tSpell->learnedSpell)
+				bot->learnSpell(tSpell->learnedSpell[0]);
+			else
+				ai->CastSpell(tSpell->spell, bot);
+		}
+	}
+
+	std::unordered_map<uint8, std::set<uint32>> classSpellsTrainerEntries = sObjectMgr->GetClassSpellTrainersEntryStore();
+	std::set<uint32> checkClassTrainerEntries = classSpellsTrainerEntries[bot->getClass()];
+	if (checkClassTrainerEntries.size() > 0)
+	{
+		for (std::set<uint32>::iterator entryIT = checkClassTrainerEntries.begin(); entryIT != checkClassTrainerEntries.end(); entryIT++)
+		{
+			TrainerSpellData const* trainer_spells = sObjectMgr->GetNpcTrainerSpells(*entryIT);
+
+			if (!trainer_spells)
+				continue;
+
+			for (TrainerSpellMap::const_iterator itr = trainer_spells->spellList.begin(); itr != trainer_spells->spellList.end(); ++itr)
+			{
+				TrainerSpell const* tSpell = &itr->second;
+
+				if (!tSpell)
+					continue;
+
+				TrainerSpellState state = bot->GetTrainerSpellState(tSpell);
+				if (state != TRAINER_SPELL_GREEN)
+					continue;
+
+				if (tSpell->learnedSpell)
+					bot->learnSpell(tSpell->learnedSpell[0]);
+				else
+					ai->CastSpell(tSpell->spell, bot);
+			}
+		}
+	}
+	else
+	{
+		sLog->outError("No trainers for class %d", bot->getClass());
+	}
+}
+
+void PlayerbotFactory::InitAllSpellsAndSkills()
+{
+	InitSkills();
+
+	bot->learnDefaultSpells();
+
+	InitTradeSkills();
+
+	UpdateTradeSkills();
+
+	InitTalents();
+
+	InitSpecialSpells();
+
+	InitQuestSpells();
+
+	InitLearnableSpells();
 }
 
 uint64 PlayerbotFactory::GetRandomBot()
@@ -1142,7 +1207,6 @@ uint64 PlayerbotFactory::GetRandomBot()
     int index = urand(0, guids.size() - 1);
     return guids[index];
 }
-
 
 void AddPrevQuests(uint32 questId, list<uint32>& questIds)
 {
@@ -1451,7 +1515,7 @@ void PlayerbotFactory::InitInventoryTrade()
 
     if (ids.empty())
     {
-        sLog->outError("No trade items available for bot %s (%d level)", bot->GetName(), bot->getLevel());
+        sLog->outError("No trade items available for bot %s (%d level)", bot->GetName().c_str(), bot->getLevel());
         return;
     }
 
