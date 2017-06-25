@@ -35,12 +35,14 @@ private:
     void ClearSpells();
     void InitAvailableSpells();
     void InitSpecialSpells();
+    void InitTalents();
+    void InitTalents(uint32 specNo);
 
 	// EJ init quest spells
 	void InitQuestSpells();
+	void InitLearnableSpells();
+	void InitAllSpellsAndSkills();
 
-    void InitTalents();
-    void InitTalents(uint32 specNo);
     void InitQuests();
     void InitPet();
     void ClearInventory();

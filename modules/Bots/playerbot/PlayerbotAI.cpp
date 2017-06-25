@@ -359,13 +359,13 @@ void PlayerbotAI::ChangeEngine(BotState type)
         switch (type)
         {
         case BOT_STATE_COMBAT:
-            sLog->outString( "=== %s COMBAT ===", bot->GetName());
+            sLog->outString( "=== %s COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_NON_COMBAT:
-            sLog->outString( "=== %s NON-COMBAT ===", bot->GetName());
+            sLog->outString( "=== %s NON-COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_DEAD:
-            sLog->outString( "=== %s DEAD ===", bot->GetName());
+            sLog->outString( "=== %s DEAD ===", bot->GetName().c_str());
             break;
         }
     }
@@ -806,8 +806,7 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell)
 
     if (bot != target && bot->GetDistance(target) > sPlayerbotAIConfig.sightDistance)
         return false;
-
-	Unit* oldSel = bot->GetSelectedUnit();
+	
 	bot->SetSelection(target->GetGUID());
 	Spell *spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
 
@@ -816,6 +815,8 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell)
     spell->m_targets.SetItemTarget(spell->m_CastItem);
     SpellCastResult result = spell->CheckCast(false);
     delete spell;
+
+	Unit* oldSel = bot->GetSelectedUnit();
 	if (oldSel)
 		bot->SetSelection(oldSel->GetGUID());
 
@@ -887,8 +888,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
 
 	bot->ClearUnitState(UNIT_STATE_CHASE);
 	bot->ClearUnitState(UNIT_STATE_FOLLOW);
-
-	Unit* oldSel = bot->GetSelectedUnit();
+	
 	bot->SetSelection(target->GetGUID());
 
     Spell *spell = new Spell(bot, pSpellInfo,TriggerCastFlags::TRIGGERED_NONE);
@@ -970,6 +970,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
 	WaitForSpellCast(spell);
     aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get().Set(spellId, target->GetGUID(), time(0));
 
+	Unit* oldSel = bot->GetSelectedUnit();
 	if (oldSel)
 		bot->SetSelection(oldSel->GetGUID());
 

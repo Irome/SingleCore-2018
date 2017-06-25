@@ -24,11 +24,15 @@ bool GreetAction::Execute(Event event)
 		return true;
 	}
 
-	Unit* oldSel = bot->GetSelectedUnit();
 	bot->SetSelection(guid);
 	bot->HandleEmoteCommand(EMOTE_ONESHOT_WAVE);
 	ai->PlaySound(TEXT_EMOTE_HELLO);
-	bot->SetSelection(oldSel->GetGUID());
+
+	Unit* oldSel = bot->GetSelectedUnit();
+	if (oldSel)
+	{
+		bot->SetSelection(oldSel->GetGUID());
+	}
 
 	set<uint64>& alreadySeenPlayers = ai->GetAiObjectContext()->GetValue<set<uint64>& >("already seen players")->Get();
 	alreadySeenPlayers.insert(guid);

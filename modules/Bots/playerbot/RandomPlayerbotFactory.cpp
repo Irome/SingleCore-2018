@@ -214,19 +214,19 @@ void RandomPlayerbotFactory::CreateRandomBots()
 		switch (result)
 		{
 		case AOR_OK:
-			sLog->outBasic("Account %s created", accountName);
+			sLog->outBasic("Account %s created", accountName.c_str());
 			break;
 		case AOR_NAME_TOO_LONG:
-			sLog->outBasic("Account %s creation failed", accountName);
+			sLog->outBasic("Account %s creation failed", accountName.c_str());
 			break;
 		case AOR_NAME_ALREDY_EXIST:
-			sLog->outBasic("Account %s creation failed, account name already exists", accountName);
+			sLog->outBasic("Account %s creation failed, account name already exists", accountName.c_str());
 			break;
 		case AOR_DB_INTERNAL_ERROR:
-			sLog->outBasic("Account %s creation failed", accountName);
+			sLog->outBasic("Account %s creation failed", accountName.c_str());
 			break;
 		default:
-			sLog->outBasic("Account %s creation failed", accountName);
+			sLog->outBasic("Account %s creation failed", accountName.c_str());
 			break;
 		}
 

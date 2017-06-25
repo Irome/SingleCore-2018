@@ -198,19 +198,22 @@ void SuggestWhatToDoAction::spam(string msg, uint32 channelId)
 	for (uint32 i = 0; i < sChatChannelsStore.GetNumRows(); ++i)
 	{
 		ChatChannelsEntry const* channel = sChatChannelsStore.LookupEntry(i);
-		AreaTableEntry const* area = sAreaStore.LookupEntry(
-			(channel->ChannelID == tradeChannelID) ? cityLookupAreaID : playerZoneId);
-		if (channel && area && channel->ChannelID == channelId)
+		if (channel)
 		{
-			char channelName[255];
-			snprintf(channelName, 255, channel->pattern[0], area->area_name[0]);
-
-			ChannelMgr cMgr = ChannelMgr(bot->GetTeamId());
-
-			if (Channel* chn = cMgr.GetJoinChannel(channelName, channelId))
+			AreaTableEntry const* area = sAreaStore.LookupEntry(
+				(channel->ChannelID == tradeChannelID) ? cityLookupAreaID : playerZoneId);
+			if (area && channel->ChannelID == channelId)
 			{
-				chn->JoinChannel(bot, "");
-				chn->Say(bot->GetGUID(), msg.c_str(), LANG_UNIVERSAL);
+				char channelName[255];
+				snprintf(channelName, 255, channel->pattern[0], area->area_name[0]);
+
+				ChannelMgr cMgr = ChannelMgr(bot->GetTeamId());
+
+				if (Channel* chn = cMgr.GetJoinChannel(channelName, channelId))
+				{
+					chn->JoinChannel(bot, "");
+					chn->Say(bot->GetGUID(), msg.c_str(), LANG_UNIVERSAL);
+				}
 			}
 		}
 	}
