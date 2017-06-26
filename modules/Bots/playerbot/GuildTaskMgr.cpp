@@ -47,7 +47,7 @@ void GuildTaskMgr::Update(Player* player, Player* guildMaster)
 	if (secLevel == PLAYERBOT_SECURITY_DENY_ALL || (secLevel == PLAYERBOT_SECURITY_TALK && reason != PLAYERBOT_DENY_FAR))
 	{
 		sLog->outString("%s / %s: skipping guild task update - not enough security level, reason = %u",
-			guild->GetName(), player->GetName(), reason);
+			guild->GetName().c_str(), player->GetName().c_str(), reason);
 		return;
 	}
 
